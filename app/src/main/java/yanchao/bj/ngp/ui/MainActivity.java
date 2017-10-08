@@ -1,4 +1,4 @@
-package yanchao.bj.ngp;
+package yanchao.bj.ngp.ui;
 
 import android.Manifest.permission;
 import android.app.AlertDialog;
@@ -33,8 +33,11 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
-import yanchao.bj.ngp.FtpService.MyBinder;
-import yanchao.bj.ngp.qrcode.QRCodeFactory;
+import yanchao.bj.ngp.ftpserver.FtpService;
+import yanchao.bj.ngp.ftpserver.FtpService.MyBinder;
+import yanchao.bj.ngp.ftpserver.IFtp;
+import yanchao.bj.ngp.R;
+import yanchao.bj.ngp.utils.qrcode.QRCodeFactory;
 
 public class MainActivity extends AppCompatActivity {
 

@@ -1,4 +1,4 @@
-package yanchao.bj.ngp;
+package yanchao.bj.ngp.ftpserver;
 
 /**
  * 北京中油瑞飞信息技术有限责任公司 研究院 瑞信项目
@@ -12,7 +12,7 @@ package yanchao.bj.ngp;
  * @日期: 2017-10-08 12:51
  */
 
-interface IFtp {
+public interface IFtp {
 
     boolean startFtp();
 

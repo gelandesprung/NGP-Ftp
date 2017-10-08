@@ -3,7 +3,7 @@
   package="yanchao.bj.ngp">
 
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
   <uses-permission android:name="android.permission.INTERNET" />
@@ -17,7 +17,7 @@
     android:theme="@style/AppTheme">
     <activity
       android:label="@string/app_name"
-      android:name=".MainActivity"
+      android:name=".ui.MainActivity"
       android:theme="@style/AppTheme.NoActionBar">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
@@ -29,7 +29,12 @@
     <service
       android:enabled="true"
       android:exported="true"
-      android:name=".FtpService"></service>
+      android:name=".ftpserver.FtpService" />
+
+    <activity
+      android:label="@string/title_activity_settings"
+      android:name=".ui.SettingsActivity"
+      android:theme="@style/AppTheme.NoActionBar"></activity>
   </application>
 
 </manifest>
