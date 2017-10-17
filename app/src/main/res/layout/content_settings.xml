@@ -8,4 +8,11 @@
   tools:context="yanchao.bj.ngp.ui.SettingsActivity"
   tools:showIn="@layout/activity_settings">
 
+  <TextView
+    android:id="@+id/textView"
+    android:layout_width="368dp"
+    android:layout_height="27dp"
+    android:text="TextView"
+    tools:layout_editor_absoluteX="8dp"
+    tools:layout_editor_absoluteY="16dp" />
 </android.support.constraint.ConstraintLayout>

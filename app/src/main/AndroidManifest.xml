@@ -34,7 +34,11 @@
     <activity
       android:label="@string/title_activity_settings"
       android:name=".ui.SettingsActivity"
-      android:theme="@style/AppTheme.NoActionBar"></activity>
+      android:theme="@style/AppTheme.NoActionBar" />
+    <activity
+      android:label="@string/title_activity_ftpclient"
+      android:name=".ui.FTPClientActivity"
+      android:theme="@style/AppTheme"></activity>
   </application>
 
 </manifest>

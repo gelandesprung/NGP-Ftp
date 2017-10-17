@@ -17,7 +17,6 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -33,10 +32,10 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import yanchao.bj.ngp.R;
 import yanchao.bj.ngp.ftpserver.FtpService;
 import yanchao.bj.ngp.ftpserver.FtpService.MyBinder;
 import yanchao.bj.ngp.ftpserver.IFtp;
-import yanchao.bj.ngp.R;
 import yanchao.bj.ngp.utils.qrcode.QRCodeFactory;
 
 public class MainActivity extends AppCompatActivity {
@@ -73,17 +72,17 @@ public class MainActivity extends AppCompatActivity {
                         if (ftpServer.stopFtp()) {
                             ftp.setText(R.string.start_ftp);
                             ftp.setSelected(false);
-                            ip.setCompoundDrawables(null,null,null,null);
+                            ip.setCompoundDrawables(null, null, null, null);
                         }
                     } else {
                         if (ftpServer.startFtp()) {
                             ftp.setText(R.string.stop_ftp);
                             ftp.setSelected(true);
                             Bitmap qr = QRCodeFactory
-                                    .createQRImage("ftp://admin:123456@" + ip + ":2121", 100, 100);
-                            Drawable qrDrawable = new BitmapDrawable(getResources(),qr);
-                            qrDrawable.setBounds(0,0,132,132);
-                            ip.setCompoundDrawables(null,qrDrawable,null,null);
+                                    .createQRImage("ftp://admin:123456@" + ip + ":2121", 300, 300);
+                            Drawable qrDrawable = new BitmapDrawable(getResources(), qr);
+                            qrDrawable.setBounds(0, 0, 332, 332);
+                            ip.setCompoundDrawables(null, qrDrawable, null, null);
                         }
                     }
                 }
@@ -116,8 +115,8 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Intent intent = new Intent(MainActivity.this, FTPClientActivity.class);
+                startActivity(intent);
             }
         });
     }
