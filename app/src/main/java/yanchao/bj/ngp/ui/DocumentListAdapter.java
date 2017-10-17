@@ -10,17 +10,7 @@ import android.view.ViewGroup;
 import java.util.List;
 import yanchao.bj.ngp.ui.DocumentListAdapter.DocumentViewHolder;
 
-/**
- * 北京中油瑞飞信息技术有限责任公司 研究院 瑞信项目
- * All Rights Reserved
- * 项目:瑞信项目
- * 类:DocumentListAdapter
- * 描述:
- * 版本信息：since 2.0
- *
- * @作者: yanchao
- * @日期: 2017-10-17 15:53
- */
+
 
 public abstract class DocumentListAdapter<T> extends Adapter<DocumentViewHolder> {
 

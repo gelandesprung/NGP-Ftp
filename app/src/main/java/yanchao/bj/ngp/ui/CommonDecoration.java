@@ -8,17 +8,7 @@ import android.support.v7.widget.RecyclerView.ItemDecoration;
 import android.support.v7.widget.RecyclerView.State;
 import android.view.View;
 
-/**
- * 北京中油瑞飞信息技术有限责任公司 研究院 瑞信项目
- * All Rights Reserved
- * 项目:瑞信项目
- * 类:CommonDecoration
- * 描述:
- * 版本信息：since 2.0
- *
- * @作者: yanchao
- * @日期: 2017-10-17 15:39
- */
+
 
 class CommonDecoration extends ItemDecoration {
 
