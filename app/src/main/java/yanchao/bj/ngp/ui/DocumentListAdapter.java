@@ -31,7 +31,7 @@ public abstract class DocumentListAdapter<T> extends Adapter<DocumentViewHolder>
     }
 
     @Override
-    public void onBindViewHolder(DocumentViewHolder holder, int position) {
+    public void onBindViewHolder(DocumentListAdapter.DocumentViewHolder holder, int position) {
         convert(holder, mData.get(position));
     }
 

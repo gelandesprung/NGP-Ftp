@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -28,15 +29,18 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
+
 import yanchao.bj.ngp.R;
 
 public class FTPClientActivity extends AppCompatActivity {
@@ -44,8 +48,9 @@ public class FTPClientActivity extends AppCompatActivity {
     private ViewPager viewPager;
     private List<View> mViewList;
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+    private BottomNavigationView.OnNavigationItemSelectedListener
+            mOnNavigationItemSelectedListener = new BottomNavigationView
+            .OnNavigationItemSelectedListener() {
 
         @Override
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
@@ -82,15 +87,8 @@ public class FTPClientActivity extends AppCompatActivity {
     private OnRefreshListener onDownloadViewSwipe = new OnRefreshListener() {
         @Override
         public void onRefresh() {
-            mFtpClient
-                    .map(new Function<FTPClient, FTPFile[]>() {
-                        @Override
-                        public FTPFile[] apply(FTPClient ftpClient) throws Exception {
-                            return ftpClient.listFiles();
-                        }
-                    })
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(refreshRemoteView);
+            mFtpClient.map(ftpClient -> ftpClient.listFiles()).observeOn(AndroidSchedulers
+                    .mainThread()).subscribe(refreshRemoteView);
         }
     };
     /**
@@ -99,12 +97,10 @@ public class FTPClientActivity extends AppCompatActivity {
     private OnRefreshListener onUploadViewSwipe = new OnRefreshListener() {
         @Override
         public void onRefresh() {
-            Observable.create(new ObservableOnSubscribe<File[]>() {
-                @Override
-                public void subscribe(ObservableEmitter<File[]> e) throws Exception {
-                    File rootDir = new File(mUploadWorkingDirectory);
-                    e.onNext(rootDir.listFiles());
-                }
+            Observable.create((ObservableOnSubscribe<File[]>) e -> {
+                File rootDir = new File(mUploadWorkingDirectory);
+                e.onNext(rootDir.listFiles());
+                e.onComplete();
             }).subscribeOn(AndroidSchedulers.mainThread()).subscribe(refreshLocalView);
         }
     };
@@ -159,7 +155,8 @@ public class FTPClientActivity extends AppCompatActivity {
         mDownloadSwipe.setOnRefreshListener(onDownloadViewSwipe);
         mUploadSwipe.setOnRefreshListener(onUploadViewSwipe);
 
-        mDownloadAdapter = new DocumentListAdapter<FTPFile>(mContxt, R.layout.document_item, mDownloadData) {
+        mDownloadAdapter = new DocumentListAdapter<FTPFile>(mContxt, R.layout.document_item,
+                mDownloadData) {
             @Override
             public void convert(DocumentViewHolder holder, FTPFile file) {
                 TextView fileName = (TextView) holder.get(R.id.docment_name);
@@ -183,7 +180,8 @@ public class FTPClientActivity extends AppCompatActivity {
                 }
             }
         };
-        mUploadAdapter = new DocumentListAdapter<File>(mContxt, R.layout.document_item, mUploadData) {
+        mUploadAdapter = new DocumentListAdapter<File>(mContxt, R.layout.document_item,
+                mUploadData) {
             @Override
             public void convert(DocumentViewHolder holder, File file) {
                 TextView fileName = (TextView) holder.get(R.id.docment_name);
@@ -242,44 +240,32 @@ public class FTPClientActivity extends AppCompatActivity {
             if (mFtpClient == null) {
                 mFtpClient = createFTPClient();
             }
-            mFtpClient.observeOn(AndroidSchedulers.mainThread())
-                    .subscribe(new Consumer<FTPClient>() {
-                        @Override
-                        public void accept(FTPClient ftpClient) throws Exception {
-                            mDownloadWorkingDirectory = ftpClient.printWorkingDirectory();
-                        }
-                    }, new Consumer<Throwable>() {
-                        @Override
-                        public void accept(Throwable throwable) throws Exception {
-                            Toast.makeText(mContxt, throwable.getMessage(), Toast.LENGTH_LONG).show();
-                        }
-                    });
+            mFtpClient.observeOn(AndroidSchedulers.mainThread()).subscribe(ftpClient ->
+                    mDownloadWorkingDirectory = ftpClient.printWorkingDirectory(), throwable ->
+                    Toast.makeText(mContxt, throwable.getMessage(), Toast.LENGTH_LONG).show());
         }
     }
 
     private Observable<FTPClient> createFTPClient() {
-        return Observable.create(new ObservableOnSubscribe<FTPClient>() {
-            @Override
-            public void subscribe(ObservableEmitter<FTPClient> e) throws Exception {
-                FTPClient ftpClient = new FTPClient();
-                FTPClientConfig config = new FTPClientConfig();
-                config.setServerTimeZoneId("asia/shanghai");
-                ftpClient.configure(config);
-                ftpClient.enterLocalPassiveMode();
-                try {
-                    ftpClient.connect("192.168.1.74", 2121);
-                    ftpClient.login("admin", "123456");
-                    int errorCode = ftpClient.getReplyCode();
-                    if (!FTPReply.isPositiveCompletion(errorCode)) {
-                        ftpClient.disconnect();
-                        e.onError(new Exception(getString(R.string.login_fail_tip)));
-                    }
-                    ftpClient.enterLocalPassiveMode();
-                    e.onNext(ftpClient);
-                    e.onComplete();
-                } catch (IOException exception) {
-                    e.onError(exception);
+        return Observable.create((ObservableOnSubscribe<FTPClient>) e -> {
+            FTPClient ftpClient = new FTPClient();
+            FTPClientConfig config = new FTPClientConfig();
+            config.setServerTimeZoneId("asia/shanghai");
+            ftpClient.configure(config);
+            ftpClient.enterLocalPassiveMode();
+            try {
+                ftpClient.connect("192.168.1.74", 2121);
+                ftpClient.login("admin", "123456");
+                int errorCode = ftpClient.getReplyCode();
+                if (!FTPReply.isPositiveCompletion(errorCode)) {
+                    ftpClient.disconnect();
+                    e.onError(new Exception(getString(R.string.login_fail_tip)));
                 }
+                ftpClient.enterLocalPassiveMode();
+                e.onNext(ftpClient);
+                e.onComplete();
+            } catch (IOException exception) {
+                e.onError(exception);
             }
         }).subscribeOn(Schedulers.io());
     }
