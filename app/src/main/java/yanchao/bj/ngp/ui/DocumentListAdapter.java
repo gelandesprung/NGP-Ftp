@@ -50,6 +50,7 @@ public abstract class DocumentListAdapter<T> extends Adapter<DocumentViewHolder>
         public DocumentViewHolder(View itemView) {
             super(itemView);
             mConvertView = itemView;
+            mViewList = new SparseArray<>();
         }
 
         public View get(int resId) {

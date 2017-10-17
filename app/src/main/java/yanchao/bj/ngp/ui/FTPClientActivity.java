@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v4.view.ViewPager.OnPageChangeListener;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -13,9 +14,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ItemDecoration;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -119,6 +122,7 @@ public class FTPClientActivity extends AppCompatActivity {
     private List<File> mUploadData = new ArrayList<>();
 
     private Observable<FTPClient> mFtpClient;
+    private PagerAdapter viewPagerAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -126,6 +130,10 @@ public class FTPClientActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ftpclient);
 
         mContxt = this;
+
+        Toolbar toolbar = (Toolbar) findViewById(R.id.client_toolbar);
+        toolbar.setTitle("Client");
+        setSupportActionBar(toolbar);
 
         viewPager = (ViewPager) findViewById(R.id.viewPager);
 
@@ -138,11 +146,11 @@ public class FTPClientActivity extends AppCompatActivity {
         View downloadView = LayoutInflater.from(this).inflate(R.layout.download_view, null);
         mDownloadRecyclerView = downloadView.findViewById(R.id.ftp_client_list);
         mDownloadSwipe = downloadView.findViewById(R.id.swipe);
-        mViewList.add(downloadView);
         View uploadView = LayoutInflater.from(this).inflate(R.layout.download_view, null);
         mUploadRecyclerView = uploadView.findViewById(R.id.ftp_client_list);
         mUploadSwipe = uploadView.findViewById(R.id.swipe);
-        mViewList.add(mUploadRecyclerView);
+        mViewList.add(0, uploadView);
+        mViewList.add(1, downloadView);
 
         mDownloadRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mUploadRecyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -208,6 +216,30 @@ public class FTPClientActivity extends AppCompatActivity {
         mDownloadRecyclerView.setAdapter(mDownloadAdapter);
         mUploadRecyclerView.setAdapter(mUploadAdapter);
 
+        viewPagerAdapter = new PagerAdapter() {
+            @Override
+            public int getCount() {
+                return 2;
+            }
+
+            @Override
+            public boolean isViewFromObject(View view, Object object) {
+                return view == object;
+            }
+
+            @Override
+            public Object instantiateItem(ViewGroup container, int position) {
+                View view = mViewList.get(position);
+                container.addView(view);
+                return view;
+            }
+
+            @Override
+            public void destroyItem(ViewGroup container, int position, Object object) {
+                container.removeView((View) object);
+            }
+        };
+        viewPager.setAdapter(viewPagerAdapter);
     }
 
     @Override
@@ -235,7 +267,8 @@ public class FTPClientActivity extends AppCompatActivity {
         if (mUploadWorkingDirectory == null) {
             mUploadWorkingDirectory = Environment.getExternalStorageDirectory().getAbsolutePath();
         }
-        mUploadData = Arrays.asList(new File(mUploadWorkingDirectory).listFiles());
+        mUploadData.addAll(new ArrayList<>(Arrays.asList(new File(mUploadWorkingDirectory)
+                .listFiles())));
         if (mDownloadWorkingDirectory == null) {
             if (mFtpClient == null) {
                 mFtpClient = createFTPClient();
@@ -279,7 +312,7 @@ public class FTPClientActivity extends AppCompatActivity {
         @Override
         public void onNext(FTPFile[] ftpFiles) {
             mDownloadData.clear();
-            mDownloadData.addAll(Arrays.asList(ftpFiles));
+            mDownloadData.addAll(new ArrayList<>(Arrays.asList(ftpFiles)));
             mDownloadAdapter.notifyDataSetChanged();
             mDownloadSwipe.setRefreshing(false);
         }
@@ -304,7 +337,7 @@ public class FTPClientActivity extends AppCompatActivity {
         @Override
         public void onNext(File[] files) {
             mUploadData.clear();
-            mUploadData.addAll(Arrays.asList(files));
+            mUploadData.addAll(new ArrayList<>(Arrays.asList(files)));
             mUploadAdapter.notifyDataSetChanged();
             mUploadSwipe.setRefreshing(false);
         }
