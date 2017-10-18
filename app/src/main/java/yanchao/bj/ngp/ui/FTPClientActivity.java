@@ -31,6 +31,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -317,7 +319,9 @@ public class FTPClientActivity extends AppCompatActivity {
 
         @Override
         public void onItemLongClickListener(View view, FTPFile itemData) {
-
+            if (itemData.isFile()) {
+                downloadFile(itemData);
+            }
         }
     };
     private OnItemClickListener<File> onUploadItemClicked = new OnItemClickListener<File>() {
@@ -340,7 +344,9 @@ public class FTPClientActivity extends AppCompatActivity {
 
         @Override
         public void onItemLongClickListener(View view, File itemData) {
-
+            if (itemData.isFile()) {
+                uploadFile(itemData);
+            }
         }
     };
 
@@ -437,7 +443,7 @@ public class FTPClientActivity extends AppCompatActivity {
             ftpClient.configure(config);
             ftpClient.enterLocalPassiveMode();
             try {
-                ftpClient.connect("192.168.1.74", 2121);
+                ftpClient.connect("192.168.1.14", 2121);
                 ftpClient.login("admin", "123456");
                 int errorCode = ftpClient.getReplyCode();
                 if (!FTPReply.isPositiveCompletion(errorCode)) {
@@ -518,4 +524,32 @@ public class FTPClientActivity extends AppCompatActivity {
 
         }
     };
+
+    private void uploadFile(File file) {
+        Observable.just(file)
+                .map(FileInputStream::new)
+                .zipWith(mFtpClient, (fileInputStream, ftpClient) -> {
+                    ftpClient.changeWorkingDirectory(mDownloadWorkingDirectory);
+                    ftpClient.storeFile(file.getName(), fileInputStream);
+                    fileInputStream.close();
+                    return true;
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(aBoolean -> Toast.makeText(mContxt, "上传文件成功", Toast.LENGTH_LONG).show()
+                        , throwable -> Toast.makeText(mContxt, throwable.getMessage(), Toast.LENGTH_LONG).show());
+    }
+
+    private void downloadFile(FTPFile ftpFile) {
+        Observable.just(ftpFile)
+                .map(it -> {
+                    FileOutputStream fileOutputStream = new FileOutputStream(
+                            mUploadWorkingDirectory.getAbsolutePath() + File.separator + it.getName());
+                    return fileOutputStream;
+                })
+                .zipWith(mFtpClient, (fileOutputStream, fTPClient) -> {
+                    fTPClient.retrieveFile(ftpFile.getName(), fileOutputStream);
+                    return true;
+                }).observeOn(AndroidSchedulers.mainThread())
+                .subscribe(aBoolean -> Toast.makeText(mContxt, "文件下载成功", Toast.LENGTH_LONG).show()
+                        , throwable -> Toast.makeText(mContxt, throwable.getMessage(), Toast.LENGTH_LONG).show());
+    }
 }
