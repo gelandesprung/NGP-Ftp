@@ -13,4 +13,10 @@
   <string name="login_fail_tip">登陆失败,请检查检查网络和用户名密码!</string>
   <string name="upload">上传</string>
   <string name="download">下载</string>
+    <string name="ftp_server_config">FTP服务器配置</string>
+    <string name="password">密码</string>
+    <string name="port">端口</string>
+    <string name="ftp_password_hint">FTP密码</string>
+  <string name="ftp_username_hint">FTP的用户名</string>
+    <string name="save">保存</string>
 </resources>

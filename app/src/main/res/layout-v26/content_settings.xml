@@ -12,47 +12,35 @@
         android:id="@+id/username"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:gravity="center"
         android:padding="@dimen/view_vertical_margin"
         android:text="用户名"
         app:layout_constraintBottom_toTopOf="@+id/password"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintEnd_toStartOf="@+id/username_edit"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
+        android:tooltipText="FTP的用户名"
         android:id="@+id/username_edit"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:hint="@string/ftp_username_hint"
         android:padding="@dimen/view_vertical_margin"
-        app:layout_constraintBottom_toTopOf="@+id/password_edit"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/username"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintStart_toEndOf="@+id/username" />
 
     <TextView
         android:id="@+id/password"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:gravity="center"
         android:padding="@dimen/view_vertical_margin"
         android:text="@string/password"
         app:layout_constraintBottom_toTopOf="@+id/port"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintEnd_toStartOf="@+id/password_edit"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/username" />
 
@@ -60,55 +48,30 @@
         android:id="@+id/password_edit"
         android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:hint="@string/ftp_password_hint"
         android:padding="@dimen/view_vertical_margin"
-        app:layout_constraintBottom_toTopOf="@+id/port_edit"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/username"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/username_edit" />
+        app:layout_constraintStart_toEndOf="@+id/password" />
 
     <TextView
         android:id="@+id/port"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:gravity="center"
         android:padding="@dimen/view_vertical_margin"
         android:text="@string/port"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline"
+        app:layout_constraintEnd_toStartOf="@+id/port_edit"
+        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/password" />
 
     <EditText
         android:id="@+id/port_edit"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="48dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:hint="端口号必须大于200，且为数字"
-        android:inputType="number"
         android:padding="@dimen/view_vertical_margin"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/password"
         app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="@+id/guideline"
-        app:layout_constraintTop_toBottomOf="@+id/password_edit" />
-
-    <android.support.constraint.Guideline
-        android:id="@+id/guideline"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.2" />
+        app:layout_constraintStart_toEndOf="@+id/port" />
 </android.support.constraint.ConstraintLayout>

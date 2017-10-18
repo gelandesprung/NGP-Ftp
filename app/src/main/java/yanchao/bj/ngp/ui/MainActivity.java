@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
@@ -25,13 +26,17 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
+
 import com.tbruyelle.rxpermissions2.RxPermissions;
+
 import io.reactivex.functions.Consumer;
+
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+
 import yanchao.bj.ngp.R;
 import yanchao.bj.ngp.ftpserver.FtpService;
 import yanchao.bj.ngp.ftpserver.FtpService.MyBinder;
@@ -78,8 +83,8 @@ public class MainActivity extends AppCompatActivity {
                         if (ftpServer.startFtp()) {
                             ftp.setText(R.string.stop_ftp);
                             ftp.setSelected(true);
-                            Bitmap qr = QRCodeFactory
-                                    .createQRImage("ftp://admin:123456@" + ip + ":2121", 300, 300);
+                            Bitmap qr = QRCodeFactory.createQRImage("ftp://admin:123456@" + ip +
+                                    ":2121", 300, 300);
                             Drawable qrDrawable = new BitmapDrawable(getResources(), qr);
                             qrDrawable.setBounds(0, 0, 332, 332);
                             ip.setCompoundDrawables(null, qrDrawable, null, null);
@@ -89,27 +94,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         RxPermissions rxPermissions = new RxPermissions(this);
-        rxPermissions.request(permission.READ_EXTERNAL_STORAGE, permission.WRITE_EXTERNAL_STORAGE,
-                permission.ACCESS_WIFI_STATE, permission.ACCESS_NETWORK_STATE, permission.INTERNET)
-                .subscribe(new Consumer<Boolean>() {
-                    @Override
-                    public void accept(Boolean aBoolean) throws Exception {
-                        if (aBoolean) {
-                            ip.setText(getIPAddress(mContext));
-                            startService(new Intent(MainActivity.this, FtpService.class));
-                            bindService(new Intent(MainActivity.this, FtpService.class),
-                                    conn,
-                                    BIND_AUTO_CREATE);
-                        } else {
-                            exitForError();
-                        }
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        exitForError();
-                    }
-                });
+        rxPermissions.request(permission.READ_EXTERNAL_STORAGE, permission
+                .WRITE_EXTERNAL_STORAGE, permission.ACCESS_WIFI_STATE, permission
+                .ACCESS_NETWORK_STATE, permission.INTERNET).subscribe(new Consumer<Boolean>() {
+            @Override
+            public void accept(Boolean aBoolean) throws Exception {
+                if (aBoolean) {
+                    ip.setText(getIPAddress(mContext));
+                    startService(new Intent(MainActivity.this, FtpService.class));
+                    bindService(new Intent(MainActivity.this, FtpService.class), conn,
+                            BIND_AUTO_CREATE);
+                } else {
+                    exitForError();
+                }
+            }
+        }, new Consumer<Throwable>() {
+            @Override
+            public void accept(Throwable throwable) throws Exception {
+                exitForError();
+            }
+        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -122,10 +126,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void exitForError() {
-        new AlertDialog.Builder(this)
-                .setMessage(R.string.permission_denied)
-                .setNegativeButton(R.string.sure, exitFromApp())
-                .create().show();
+        new AlertDialog.Builder(this).setMessage(R.string.permission_denied).setNegativeButton(R
+                .string.sure, exitFromApp()).create().show();
     }
 
     private DialogInterface.OnClickListener exitFromApp() {
@@ -161,28 +163,29 @@ public class MainActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(intent);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-
     public String getIPAddress(Context context) {
-        NetworkInfo info = ((ConnectivityManager) context
-                .getSystemService(Context.CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
+        NetworkInfo info = ((ConnectivityManager) context.getSystemService(Context
+                .CONNECTIVITY_SERVICE)).getActiveNetworkInfo();
         if (info != null && info.isConnected()) {
             if (info.getType() == ConnectivityManager.TYPE_MOBILE) {//当前使用2G/3G/4G网络
                 try {
                     //Enumeration<NetworkInterface> en=NetworkInterface.getNetworkInterfaces();
-                    for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces();
-                            en.hasMoreElements(); ) {
+                    for (Enumeration<NetworkInterface> en = NetworkInterface.getNetworkInterfaces
+                            (); en.hasMoreElements(); ) {
                         NetworkInterface intf = en.nextElement();
                         for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses();
-                                enumIpAddr.hasMoreElements(); ) {
+                             enumIpAddr.hasMoreElements(); ) {
                             InetAddress inetAddress = enumIpAddr.nextElement();
-                            if (!inetAddress.isLoopbackAddress()
-                                    && inetAddress instanceof Inet4Address) {
+                            if (!inetAddress.isLoopbackAddress() && inetAddress instanceof
+                                    Inet4Address) {
                                 return inetAddress.getHostAddress();
                             }
                         }
@@ -192,8 +195,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             } else if (info.getType() == ConnectivityManager.TYPE_WIFI) {//当前使用无线网络
-                WifiManager wifiManager = (WifiManager) context
-                        .getSystemService(Context.WIFI_SERVICE);
+                WifiManager wifiManager = (WifiManager) context.getSystemService(Context
+                        .WIFI_SERVICE);
                 WifiInfo wifiInfo = wifiManager.getConnectionInfo();
                 String ipAddress = intIP2StringIP(wifiInfo.getIpAddress());//得到IPV4地址
                 return ipAddress;
@@ -208,9 +211,7 @@ public class MainActivity extends AppCompatActivity {
      * 将得到的int类型的IP转换为String类型
      */
     public String intIP2StringIP(int ip) {
-        return (ip & 0xFF) + "." +
-                ((ip >> 8) & 0xFF) + "." +
-                ((ip >> 16) & 0xFF) + "." +
-                (ip >> 24 & 0xFF);
+        return (ip & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + ((ip >> 16) & 0xFF) + "." + (ip >>
+                24 & 0xFF);
     }
 }
