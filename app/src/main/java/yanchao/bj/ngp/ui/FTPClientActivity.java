@@ -15,9 +15,11 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.ItemDecoration;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -38,9 +40,14 @@ import org.apache.commons.net.ftp.FTPClientConfig;
 import org.apache.commons.net.ftp.FTPFile;
 import org.apache.commons.net.ftp.FTPReply;
 import yanchao.bj.ngp.R;
+import yanchao.bj.ngp.utils.OnItemClickListener;
 
 public class FTPClientActivity extends AppCompatActivity {
 
+    private static final String TAG = "FTPClient";
+
+    private static final int PAGE_UPLOAD = 0;
+    private static final int PAGE_DOWNLOAD = 1;
     private ViewPager viewPager;
     private List<View> mViewList;
     private BottomNavigationView mNavigationView;
@@ -53,10 +60,10 @@ public class FTPClientActivity extends AppCompatActivity {
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()) {
                 case R.id.navigation_upload:
-                    viewPager.setCurrentItem(0);
+                    viewPager.setCurrentItem(PAGE_UPLOAD);
                     return true;
                 case R.id.navigation_download:
-                    viewPager.setCurrentItem(1);
+                    viewPager.setCurrentItem(PAGE_DOWNLOAD);
                     return true;
             }
             return false;
@@ -70,8 +77,10 @@ public class FTPClientActivity extends AppCompatActivity {
     private RecyclerView mUploadRecyclerView;
     private SwipeRefreshLayout mDownloadSwipe;
     private SwipeRefreshLayout mUploadSwipe;
-    private String mDownloadWorkingDirectory;
-    private String mUploadWorkingDirectory;//local
+    private String mDownloadWorkingDirectory = "";
+    private File mUploadWorkingDirectory;//local
+    private String mDownloadRootDirectory;
+    private String mUploadRootDirectory;//local
     private DocumentListAdapter<FTPFile> mDownloadAdapter;
     private DocumentListAdapter<File> mUploadAdapter;
     private List<FTPFile> mDownloadData = new ArrayList<>();
@@ -79,6 +88,9 @@ public class FTPClientActivity extends AppCompatActivity {
 
     private Observable<FTPClient> mFtpClient;
     private PagerAdapter viewPagerAdapter;
+    private Toolbar toolbar;
+    private TextView mPathExhibition;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,9 +99,10 @@ public class FTPClientActivity extends AppCompatActivity {
 
         mContxt = this;
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.client_toolbar);
-        toolbar.setTitle("Client");
+        toolbar = (Toolbar) findViewById(R.id.client_toolbar);
         setSupportActionBar(toolbar);
+        toolbar.setNavigationOnClickListener(navigateBackClickListener);
+        mPathExhibition = (TextView) findViewById(R.id.path_exhibition);
 
         mNavigationView = (BottomNavigationView) findViewById(R.id.navigation);
         viewPager = (ViewPager) findViewById(R.id.viewPager);
@@ -124,6 +137,7 @@ public class FTPClientActivity extends AppCompatActivity {
                 mDownloadData) {
             @Override
             public void convert(DocumentViewHolder holder, FTPFile file) {
+                Log.d(TAG, "convert: file = " + file.getName());
                 TextView fileName = (TextView) holder.get(R.id.docment_name);
                 fileName.setText(file.getName());
                 ImageView header = (ImageView) holder.get(R.id.header);
@@ -149,6 +163,7 @@ public class FTPClientActivity extends AppCompatActivity {
                 mUploadData) {
             @Override
             public void convert(DocumentViewHolder holder, File file) {
+                Log.d(TAG, "convert: file = " + file.getName());
                 TextView fileName = (TextView) holder.get(R.id.docment_name);
                 fileName.setText(file.getName());
                 ImageView header = (ImageView) holder.get(R.id.header);
@@ -170,6 +185,8 @@ public class FTPClientActivity extends AppCompatActivity {
                 }
             }
         };
+        mDownloadAdapter.setItemClickListener(onDownloadItemClicked);
+        mUploadAdapter.setItemClickListener(onUploadItemClicked);
         mDownloadRecyclerView.setAdapter(mDownloadAdapter);
         mUploadRecyclerView.setAdapter(mUploadAdapter);
 
@@ -202,12 +219,14 @@ public class FTPClientActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "onStart");
         initData();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        Log.d(TAG, "onResume");
         refresh();
     }
 
@@ -215,34 +234,126 @@ public class FTPClientActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.d(TAG, "onPause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        Log.d(TAG, "onStop");
+        mFtpClient.subscribe(FTPClient::disconnect);
+        mViewList.clear();
     }
 
     private void initData() {
+        Log.d(TAG, "initData");
+        mUploadRootDirectory = Environment.getExternalStorageDirectory().getAbsolutePath();
         if (mUploadWorkingDirectory == null) {
-            mUploadWorkingDirectory = Environment.getExternalStorageDirectory().getAbsolutePath();
+            mUploadWorkingDirectory = new File(mUploadRootDirectory);
         }
-        mUploadData.addAll(Arrays.asList(new File(mUploadWorkingDirectory).listFiles()));
-        if (mDownloadWorkingDirectory == null) {
+        mDownloadRootDirectory = "/";
+        if (mDownloadWorkingDirectory == null || mFtpClient == null) {
             if (mFtpClient == null) {
                 mFtpClient = createFTPClient();
             }
             mFtpClient.observeOn(AndroidSchedulers.mainThread()).subscribe(ftpClient ->
-                    mDownloadWorkingDirectory = ftpClient.printWorkingDirectory(), throwable ->
+            {
+                mDownloadWorkingDirectory = ftpClient.printWorkingDirectory();
+                mDownloadRootDirectory = ftpClient.printWorkingDirectory();
+            }, throwable ->
                     Toast.makeText(mContxt, throwable.getMessage(), Toast.LENGTH_LONG).show());
         }
     }
 
-    private void refresh() {
+    private OnClickListener navigateBackClickListener = v -> dispatcheBackEvent();
+
+    private void dispatcheBackEvent() {
+        Log.d(TAG, "dispatcheBackEvent " + mUploadWorkingDirectory.getAbsolutePath());
         switch (viewPager.getCurrentItem()) {
-            case 1:
+            case PAGE_UPLOAD:
+                Observable.just(mUploadWorkingDirectory.getParentFile())
+                        .map(file -> {
+                            mUploadWorkingDirectory = file;
+                            return mUploadWorkingDirectory.listFiles();
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(refreshLocalView);
+                break;
+            case PAGE_DOWNLOAD:
+                mFtpClient
+                        .map(ftpClient -> {
+                            ftpClient.changeWorkingDirectory(mDownloadWorkingDirectory);
+                            if (ftpClient.changeToParentDirectory()) {
+                                mDownloadWorkingDirectory = ftpClient.printWorkingDirectory();
+                            }
+                            return ftpClient.listFiles();
+                        })
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(refreshRemoteView);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private OnItemClickListener<FTPFile> onDownloadItemClicked = new OnItemClickListener<FTPFile>() {
+        @Override
+        public void onItemClickListener(View view, FTPFile itemData) {
+            Log.d(TAG, "mDownloadWorkingDirectory =" + mDownloadWorkingDirectory
+                    + " onDownloadItemClicked: " + itemData.getName());
+            Observable.just(itemData)
+                    .filter(FTPFile::isDirectory)
+                    .flatMap(ftpFile -> mFtpClient)
+                    .doOnNext(ftpClient -> {
+                        ftpClient.changeWorkingDirectory(
+                                mDownloadWorkingDirectory + File.separator + itemData.getName());
+                        mDownloadWorkingDirectory = ftpClient.printWorkingDirectory();
+
+                    })
+                    .map(FTPClient::listFiles)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(refreshRemoteView);
+        }
+
+        @Override
+        public void onItemLongClickListener(View view, FTPFile itemData) {
+
+        }
+    };
+    private OnItemClickListener<File> onUploadItemClicked = new OnItemClickListener<File>() {
+        @Override
+        public void onItemClickListener(View view, File itemData) {
+            Log.d(TAG, "mUploadWorkingDirectory =" + mUploadWorkingDirectory
+                    + " onUploadItemClicked: " + itemData.getName());
+
+            Observable.just(itemData).filter(File::isDirectory)
+                    .map(file -> {
+                        File child = new File(
+                                mUploadWorkingDirectory.getAbsolutePath() + File.separator + file.getName());
+                        if (child.exists() && child.isDirectory()) {
+                            mUploadWorkingDirectory = child.getAbsoluteFile();
+                        }
+                        return mUploadWorkingDirectory.listFiles();
+                    }).observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(refreshLocalView);
+        }
+
+        @Override
+        public void onItemLongClickListener(View view, File itemData) {
+
+        }
+    };
+
+    /**
+     * 触发刷新动作,刷新当前页面的数据
+     */
+    private void refresh() {
+        Log.d(TAG, "refresh");
+        switch (viewPager.getCurrentItem()) {
+            case PAGE_UPLOAD:
                 onUploadViewSwipe.onRefresh();
                 break;
-            case 2:
+            case PAGE_DOWNLOAD:
                 onDownloadViewSwipe.onRefresh();
                 break;
             default:
@@ -260,11 +371,25 @@ public class FTPClientActivity extends AppCompatActivity {
         @Override
         public void onPageSelected(int position) {
             switch (position) {
-                case 1:
+                case PAGE_DOWNLOAD:
                     mNavigationView.setSelectedItemId(R.id.navigation_download);
+                    if (mDownloadWorkingDirectory.equals(mDownloadRootDirectory)) {
+                        toolbar.setNavigationIcon(null);
+                        mPathExhibition.setText(mDownloadRootDirectory);
+                    } else {
+                        mPathExhibition.setText(mDownloadWorkingDirectory);
+                        toolbar.setNavigationIcon(R.drawable.arrow_back_black_24dp);
+                    }
                     break;
                 default:
                     mNavigationView.setSelectedItemId(R.id.navigation_upload);
+                    if (mUploadWorkingDirectory.getAbsolutePath().equals(mUploadRootDirectory)) {
+                        toolbar.setNavigationIcon(null);
+                        mPathExhibition.setText(mUploadRootDirectory);
+                    } else {
+                        mPathExhibition.setText(mUploadWorkingDirectory.getAbsolutePath());
+                        toolbar.setNavigationIcon(R.drawable.arrow_back_black_24dp);
+                    }
                     break;
             }
         }
@@ -280,7 +405,11 @@ public class FTPClientActivity extends AppCompatActivity {
     private OnRefreshListener onDownloadViewSwipe = new OnRefreshListener() {
         @Override
         public void onRefresh() {
-            mFtpClient.map(FTPClient::listFiles)
+            mFtpClient.doOnNext(ftpClient -> {
+                Log.d(TAG, "refresh------" + ftpClient.printWorkingDirectory());
+                ftpClient.changeWorkingDirectory(mDownloadWorkingDirectory);
+            })
+                    .map(FTPClient::listFiles)
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(refreshRemoteView);
         }
@@ -292,7 +421,7 @@ public class FTPClientActivity extends AppCompatActivity {
         @Override
         public void onRefresh() {
             Observable.create((ObservableOnSubscribe<File[]>) e -> {
-                File rootDir = new File(mUploadWorkingDirectory);
+                File rootDir = mUploadWorkingDirectory;
                 e.onNext(rootDir.listFiles());
                 e.onComplete();
             }).subscribeOn(AndroidSchedulers.mainThread()).subscribe(refreshLocalView);
@@ -300,6 +429,7 @@ public class FTPClientActivity extends AppCompatActivity {
     };
 
     private Observable<FTPClient> createFTPClient() {
+        Log.d(TAG, "createFTPClient");
         return Observable.create((ObservableOnSubscribe<FTPClient>) e -> {
             FTPClient ftpClient = new FTPClient();
             FTPClientConfig config = new FTPClientConfig();
@@ -316,7 +446,6 @@ public class FTPClientActivity extends AppCompatActivity {
                 }
                 ftpClient.enterLocalPassiveMode();
                 e.onNext(ftpClient);
-                e.onComplete();
             } catch (IOException exception) {
                 e.onError(exception);
             }
@@ -331,6 +460,14 @@ public class FTPClientActivity extends AppCompatActivity {
 
         @Override
         public void onNext(FTPFile[] ftpFiles) {
+            Log.d(TAG, "refreshRemoteView ");
+            if (mDownloadWorkingDirectory.equals(mDownloadRootDirectory) || mDownloadWorkingDirectory.isEmpty()) {
+                toolbar.setNavigationIcon(null);
+                mPathExhibition.setText(mDownloadRootDirectory);
+            } else {
+                mPathExhibition.setText(mDownloadWorkingDirectory);
+                toolbar.setNavigationIcon(R.drawable.arrow_back_black_24dp);
+            }
             mDownloadData.clear();
             mDownloadData.addAll(Arrays.asList(ftpFiles));
             mDownloadAdapter.notifyDataSetChanged();
@@ -356,6 +493,14 @@ public class FTPClientActivity extends AppCompatActivity {
 
         @Override
         public void onNext(File[] files) {
+            Log.d(TAG, "refreshLocalView workingdir=" + mUploadWorkingDirectory.getAbsolutePath());
+            if (mUploadWorkingDirectory.getAbsolutePath().equals(mUploadRootDirectory)) {
+                toolbar.setNavigationIcon(null);
+                mPathExhibition.setText(mUploadRootDirectory);
+            } else {
+                mPathExhibition.setText(mUploadWorkingDirectory.getAbsolutePath());
+                toolbar.setNavigationIcon(R.drawable.arrow_back_black_24dp);
+            }
             mUploadData.clear();
             mUploadData.addAll(Arrays.asList(files));
             mUploadAdapter.notifyDataSetChanged();

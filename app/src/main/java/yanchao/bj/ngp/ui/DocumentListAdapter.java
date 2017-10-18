@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import java.util.List;
 import yanchao.bj.ngp.ui.DocumentListAdapter.DocumentViewHolder;
-
+import yanchao.bj.ngp.utils.OnItemClickListener;
 
 
 public abstract class DocumentListAdapter<T> extends Adapter<DocumentViewHolder> {
@@ -17,6 +17,15 @@ public abstract class DocumentListAdapter<T> extends Adapter<DocumentViewHolder>
     private int mLayoutId;
     private Context mContext;
     private List<T> mData;
+    private OnItemClickListener<T> itemClickListener;
+
+    public void setItemClickListener(OnItemClickListener listener) {
+        itemClickListener = listener;
+    }
+
+    public void removeItemClickListener() {
+        itemClickListener = null;
+    }
 
     public DocumentListAdapter(Context mContext, int mLayoutId, List<T> mData) {
         this.mLayoutId = mLayoutId;
@@ -32,7 +41,19 @@ public abstract class DocumentListAdapter<T> extends Adapter<DocumentViewHolder>
 
     @Override
     public void onBindViewHolder(DocumentListAdapter.DocumentViewHolder holder, int position) {
-        convert(holder, mData.get(position));
+        T data = mData.get(position);
+        holder.mConvertView.setOnClickListener(v -> {
+            if (itemClickListener != null) {
+                itemClickListener.onItemClickListener(v, data);
+            }
+        });
+        holder.mConvertView.setOnLongClickListener(v -> {
+            if (itemClickListener != null) {
+                itemClickListener.onItemLongClickListener(v, data);
+            }
+            return true;
+        });
+        convert(holder, data);
     }
 
     public abstract void convert(DocumentViewHolder holder, T t);
