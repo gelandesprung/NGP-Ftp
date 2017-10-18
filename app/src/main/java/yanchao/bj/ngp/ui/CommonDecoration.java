@@ -17,15 +17,15 @@ class CommonDecoration extends ItemDecoration {
     public CommonDecoration() {
         super();
         painter = new Paint();
-        painter.setColor(Color.BLACK);
+        painter.setColor(Color.LTGRAY);
         painter.setStrikeThruText(true);
     }
 
     @Override
     public void onDraw(Canvas c, RecyclerView parent, State state) {
         super.onDraw(c, parent, state);
-        int left = parent.getPaddingLeft();
-        int right = parent.getWidth() - parent.getPaddingRight();
+        int left = parent.getPaddingLeft()+8;
+        int right = parent.getWidth() - parent.getPaddingRight()-8;
         int childCount = parent.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View child = parent.getChildAt(i);
