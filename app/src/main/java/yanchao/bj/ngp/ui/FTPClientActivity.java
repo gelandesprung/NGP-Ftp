@@ -144,7 +144,7 @@ public class FTPClientActivity extends AppCompatActivity {
                 fileName.setText(file.getName());
                 ImageView header = (ImageView) holder.get(R.id.header);
                 if (file.isDirectory()) {
-                    header.setImageResource(R.mipmap.directory_icon);
+                    header.setImageResource(R.mipmap.directory_closed_default);
                 } else {
                     String name = file.getName();
                     if (name.endsWith(".doc")) {
@@ -154,9 +154,11 @@ public class FTPClientActivity extends AppCompatActivity {
                     } else if (name.endsWith(".zip")) {
                         header.setImageResource(R.mipmap.zip_file);
                     } else if (name.endsWith(".jpg") || name.endsWith(".png")) {
-                        header.setImageResource(R.mipmap.jpg_file);
+                        header.setImageResource(R.mipmap.png_file);
+                    } else if (name.endsWith(".mp3")) {
+                        header.setImageResource(R.mipmap.color_mp3_file);
                     } else {
-                        header.setImageResource(R.mipmap.document);
+                        header.setImageResource(R.mipmap.document_file);
                     }
                 }
             }
@@ -170,19 +172,21 @@ public class FTPClientActivity extends AppCompatActivity {
                 fileName.setText(file.getName());
                 ImageView header = (ImageView) holder.get(R.id.header);
                 if (file.isDirectory()) {
-                    header.setImageResource(R.mipmap.directory_icon);
+                    header.setImageResource(R.mipmap.directory_closed_default);
                 } else {
                     String name = file.getName();
                     if (name.endsWith(".doc")) {
                         header.setImageResource(R.mipmap.doc_file);
+                    } else if (name.endsWith(".mp3")) {
+                        header.setImageResource(R.mipmap.color_mp3_file);
                     } else if (name.endsWith(".txt")) {
                         header.setImageResource(R.mipmap.txt_file);
                     } else if (name.endsWith(".zip")) {
                         header.setImageResource(R.mipmap.zip_file);
                     } else if (name.endsWith(".jpg") || name.endsWith(".png")) {
-                        header.setImageResource(R.mipmap.jpg_file);
+                        header.setImageResource(R.mipmap.png_file);
                     } else {
-                        header.setImageResource(R.mipmap.document);
+                        header.setImageResource(R.mipmap.document_file);
                     }
                 }
             }
